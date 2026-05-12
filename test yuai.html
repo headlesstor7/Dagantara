@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikasi Dagantara - Auth Flow</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2B65F6',      // Main blue color from design
+                        secondary: '#1A4CCC',    // Darker blue for background gradient
+                        accent: '#0CA1F2',       // Light blue for waves
+                        'form-bg': '#FFFFFF',
+                        'text-dark': '#2B65F6',
+                        'text-muted': '#9CA3AF',
+                        'input-border': '#3B82F6',
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                    borderRadius: {
+                        '4xl': '2rem',
+                        '5xl': '2.5rem',
+                        '6xl': '3rem',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #e5e7eb; /* Default body background */
+        }
+
+        /* Gradient background for screens */
+        .bg-gradient-custom {
+            background: linear-gradient(180deg, #1ea5fc 0%, #2B65F6 100%);
+        }
+
+        /* Background wave styling (used mostly at bottom) */
+        .wave-bottom {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 150px;
+            background-image: radial-gradient(100% 100% at 50% 100%, #2B65F6 0%, transparent 100%);
+            /* Using a simple shape for now, can be improved with SVG if needed */
+            border-radius: 100% 100% 0 0;
+            background-color: #2B65F6;
+            z-index: 0;
+            opacity: 0.9;
+            transform: scaleX(1.5);
+        }
+
+         .wave-bottom-light {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 80px;
+            background-color: #0CA1F2;
+            border-radius: 100% 100% 0 0;
+            z-index: 1;
+            transform: scaleX(1.5);
+         }
+
+        /* Screen transition classes */
+        .screen {
+            display: none;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        .screen.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Custom Input Styles */
+        .custom-input {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            border-radius: 2rem;
+            border: 1px solid #3B82F6;
+            outline: none;
+            color: #4B5563;
+            font-size: 0.875rem;
+            transition: all 0.3s;
+        }
+        .custom-input::placeholder {
+            color: #9CA3AF;
+        }
+        .custom-input:focus {
+            border-color: #2B65F6;
+            box-shadow: 0 0 0 2px rgba(43, 101, 246, 0.2);
+        }
+
+        /* OTP Input Styles */
+        .otp-input {
+            width: 3.5rem;
+            height: 3.5rem;
+            border-radius: 0.75rem;
+            border: none;
+            background-color: #E5E7EB;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #374151;
+            outline: none;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .otp-input:focus {
+            background-color: #D1D5DB;
+        }
+
+        /* Form Card Styling */
+        .form-card {
+            background-color: white;
+            border-top-left-radius: 2.5rem;
+            border-top-right-radius: 2.5rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 2rem;
+            z-index: 10;
+            position: relative;
+            box-shadow: 0 -10px 20px rgba(0,0,0,0.1);
+        }
+        
+        /* Floating Form Card (for specific screens) */
+        .form-card-floating {
+            background-color: white;
+            border-radius: 2.5rem;
+            padding: 2rem;
+            margin: 0 1rem;
+            z-index: 10;
+            position: relative;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        /* Custom Logo Font/Style (Placeholder for actual image) */
+        .logo-placeholder {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 6rem;
+            font-weight: bold;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            line-height: 1;
+        }
+
+    </style>
+</head>
+<body class="flex justify-center items-center min-h-screen">
+
+    <!-- Mobile Device Simulator -->
+    <div class="w-full max-w-[400px] h-[800px] bg-gradient-custom relative overflow-hidden shadow-2xl rounded-[3rem] border-[12px] border-gray-900 flex flex-col">
+
+        <!-- ========================================== -->
+        <!-- SCREEN 1: Splash Screen / Welcome (Frame 1 & 2) -->
+        <!-- ========================================== -->
+        <div id="screen-splash" class="screen active justify-center items-center relative">
+            <div class="z-10 flex flex-col items-center mt-[-100px]">
+                <!-- Logo Placeholder (Approximating the 'D/A' logo) -->
+                <div class="logo-placeholder mb-6">
+                    A<!-- Replace with actual logo image later -->
+                </div>
+                <h1 class="text-white text-2xl font-bold mb-2 tracking-wide">Selamat Datang</h1>
+                <p class="text-blue-100 text-sm">Di Aplikasi Dagantara</p>
+            </div>
+
+            <!-- Bottom Button & Wave -->
+            <div class="absolute bottom-12 w-full px-8 z-10">
+                <button onclick="navTo('screen-login-options')" class="w-full bg-white text-primary font-bold py-3.5 rounded-full shadow-lg hover:bg-blue-50 transition transform hover:scale-105">
+                    Mulai Di Sini
+                </button>
+            </div>
+            
+            <!-- Background Waves -->
+            <div class="wave-bottom-light" style="height: 120px; bottom: -20px;"></div>
+            <div class="wave-bottom"></div>
+        </div>
+
+
+        <!-- ========================================== -->
+        <!-- SCREEN 2: Login/Register Options (Frame 3) -->
+        <!-- ========================================== -->
+        <div id="screen-login-options" class="screen">
+            <!-- Header Area -->
+            <div class="flex flex-col items-center justify-center pt-16 pb-10 z-10 px-6 text-center">
+                 <div class="logo-placeholder text-5xl mb-4">
+                    A
+                </div>
+                <p class="text-white font-semibold text-lg leading-tight">
+                    Aplikasi Terbaik Untuk Membantu<br>Manajemen Bisnis Anda
+                </p>
+            </div>
+
+            <!-- White Card Area -->
+            <div class="form-card mt-auto items-center">
+                <h2 class="text-primary font-bold text-xl mb-8 text-center px-4 leading-tight">
+                    Buat Akun atau Login<br>Untuk Melanjutkan
+                </h2>
+
+                <button onclick="navTo('screen-register')" class="w-full bg-primary text-white font-semibold py-3.5 rounded-full mb-4 shadow-md hover:bg-blue-700 transition">
+                    Buat Akun
+                </button>
+                <button onclick="navTo('screen-login')" class="w-full bg-primary text-white font-semibold py-3.5 rounded-full mb-8 shadow-md hover:bg-blue-700 transition">
+                    Login
+                </button>
+
+                <!-- Social Login Separator -->
+                <div class="w-full flex items-center mb-6">
+                    <div class="flex-grow border-t border-gray-300"></div>
+                    <span class="mx-4 text-xs text-gray-500 font-medium">Atau login dengan</span>
+                    <div class="flex-grow border-t border-gray-300"></div>
+                </div>
+
+                <!-- Social Buttons -->
+                <div class="flex justify-between w-full gap-4">
+                    <button class="flex-1 py-2 border border-gray-300 rounded-xl flex justify-center items-center hover:bg-gray-50 transition">
+                        <i class="fab fa-facebook text-blue-600 text-xl"></i>
+                    </button>
+                    <button class="flex-1 py-2 border border-gray-300 rounded-xl flex justify-center items-center hover:bg-gray-50 transition">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24">
+                            <path fill="#EA4335" d="M5.266 9.765A7.077 7.077 0 0 1 12 4.909c1.69 0 3.218.6 4.418 1.582L19.91 3C17.782 1.145 15.055 0 12 0 7.27 0 3.198 2.698 1.24 6.65l4.026 3.115Z"/>
+                            <path fill="#34A853" d="M16.04 18.013c-1.09.703-2.474 1.078-4.04 1.078a7.077 7.077 0 0 1-6.723-4.823l-4.04 3.067A11.965 11.965 0 0 0 12 24c2.933 0 5.735-1.043 7.834-3l-3.793-2.987Z"/>
+                            <path fill="#4A90E2" d="M19.834 21c2.195-2.048 3.62-5.096 3.62-9 0-.71-.109-1.473-.272-2.182H12v4.637h6.436c-.317 1.559-1.17 2.766-2.395 3.558L19.834 21Z"/>
+                            <path fill="#FBBC05" d="M5.277 14.268A7.12 7.12 0 0 1 4.909 12c0-.782.125-1.533.357-2.235L1.24 6.65A11.934 11.934 0 0 0 0 12c0 1.92.445 3.73 1.237 5.335l4.04-3.067Z"/>
+                        </svg>
+                    </button>
+                    <button class="flex-1 py-2 border border-gray-300 rounded-xl flex justify-center items-center hover:bg-gray-50 transition">
+                        <i class="fab fa-apple text-black text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Bottom Waves to fill gap if any (behind form) -->
+            <div class="wave-bottom-light" style="bottom: 0;"></div>
+            <div class="wave-bottom" style="bottom: -20px;"></div>
+        </div>
+
+
+        <!-- ========================================== -->
+        <!-- SCREEN 3: Register Form (Frame 4) -->
+        <!-- ========================================== -->
+        <div id="screen-register" class="screen">
+            <!-- Header -->
+            <div class="pt-12 px-8 pb-8 z-10 relative">
+                <button onclick="navTo('screen-login-options')" class="text-white mb-6 hover:opacity-80 absolute top-6 left-6">
+                    <i class="fas fa-arrow-left text-xl"></i>
+                </button>
+                <h1 class="text-white text-4xl font-bold leading-tight mt-6">
+                    Buat Akun<br>Anda
+                </h1>
+                <div class="w-full h-0.5 bg-white/50 mt-4"></div>
+            </div>
+
+            <!-- Form Card -->
+            <div class="form-card pb-12 overflow-y-auto no-scrollbar">
+                <h2 class="text-primary font-bold text-lg text-center mb-6">
+                    Masukkan Email dan<br>Kata Sandi Anda
+                </h2>
+
+                <form class="flex flex-col gap-4">
+                    <!-- Split Inputs -->
+                    <div class="flex">
+                        <input type="text" placeholder="Nama Depan" class="w-1/2 p-3 border border-input-border text-sm outline-none rounded-l-full focus:ring-1 focus:ring-primary z-10">
+                        <input type="text" placeholder="Nama Belakang" class="w-1/2 p-3 border border-input-border border-l-0 text-sm outline-none rounded-r-full focus:ring-1 focus:ring-primary">
+                    </div>
+                    
+                    <input type="email" placeholder="Email" class="custom-input">
+                    <input type="password" placeholder="Kata Sandi" class="custom-input">
+                    <input type="password" placeholder="Konfirmasi Kata Sandi" class="custom-input">
+                    
+                    <p class="text-[10px] text-gray-400 text-center mt-1 mb-2">Pastikan untuk Menggunakan Kata Sandi yang Rumit</p>
+
+                    <button type="button" onclick="navTo('screen-verify-register')" class="w-full bg-primary text-white font-bold py-3.5 rounded-full shadow-md hover:bg-blue-700 transition mt-2">
+                        Daftar
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Bottom Waves Decoration -->
+            <div class="absolute bottom-0 w-full h-16 overflow-hidden z-20 pointer-events-none">
+                 <svg viewBox="0 0 1440 320" class="absolute bottom-0 w-full h-full" preserveAspectRatio="none">
+                    <path fill="#2B65F6" fill-opacity="1" d="M0,160L80,181.3C160,203,320,245,480,240C640,235,800,181,960,170.7C1120,160,1280,192,1360,208L1440,224L1440,320L1360,320C1280,320,1120,320,960,320C800,320,640,320,480,320C320,320,160,320,80,320L0,320Z"></path>
+                </svg>
+            </div>
+        </div>
+
+
+        <!-- ========================================== -->
+        <!-- SCREEN 4: Verify OTP Register (Frame 5) -->
+        <!-- ========================================== -->
+        <div id="screen-verify-register" class="screen">
+            <!-- Header -->
+            <div class="pt-12 px-8 pb-12 z-10 relative">
+                <button onclick="navTo('screen-register')" class="text-white mb-6 hover:opacity-80 absolute top-6 left-6">
+                    <i class="fas fa-arrow-left text-xl"></i>
+                </button>
+                <h1 class="text-white text-4xl font-bold leading-tight mt-6">
+                    Buat Akun<br>Anda
+                </h1>
+                <div class="w-full h-0.5 bg-white/50 mt-4"></div>
+            </div>
+
+            <!-- Floating Form Card -->
+            <div class="form-card-floating flex flex-col items-center">
+                <h2 class="text-primary font-bold text-lg text-center mb-6">
+                    Masukkan Kode Verifikasi<br>Dari Email Anda
+                </h2>
+
+                <!-- OTP Inputs -->
+                <div class="flex gap-2 justify-center mb-8 w-full">
+                    <input type="text" maxlength="1" class="otp-input" value="1">
+                    <input type="text" maxlength="1" class="otp-input" value="2">
+                    <input type="text" maxlength="1" class="otp-input" value="3">
+                    <input type="text" maxlength="1" class="otp-input" value="4">
+                    <input type="text" maxlength="1" class="otp-input" value="5">
+                </div>
+
+                <button type="button" onclick="alert('Pendaftaran Berhasil!'); navTo('screen-splash');" class="w-full bg-primary text-white font-bold py-3.5 rounded-full shadow-md hover:bg-blue-700 transition mb-4">
+                    Verifikasi
+                </button>
+
+                <div class="text-center text-sm font-semibold">
+                    <a href="#" class="text-gray-600 underline decoration-gray-400">Kirim Ulang</a>
+                    <p class="text-gray-500 mt-1">01:00</p>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ========================================== -->
+        <!-- SCREEN 5: Login Form (Frame 7) -->
+        <!-- ========================================== -->
+        <div id="screen-login" class="screen">
+            <!-- Header -->
+            <div class="pt-12 px-8 pb-10 z-10 relative">
+                <button onclick="navTo('screen-login-options')" class="text-white mb-6 hover:opacity-80 absolute top-6 left-6">
+                    <i class="fas fa-arrow-left text-xl"></i>
+                </button>
+                <h1 class="text-white text-4xl font-bold leading-tight mt-6">
+                    Masuk Kembali<br>Ke Akun Anda
+                </h1>
+            </div>
+
+            <!-- Floating Form Card -->
+            <div class="form-card-floating">
+                <h2 class="text-primary font-bold text-lg text-center mb-8">
+                    Masukkan Email dan<br>Kata Sandi Anda
+                </h2>
+
+                <form class="flex flex-col gap-5">
+                    <input type="email" placeholder="Email" class="custom-input">
+                    <input type="password" placeholder="Kata Sandi" class="custom-input">
+                    
+                    <div class="flex justify-between items-center px-2 mt-[-5px] mb-4">
+                        <p class="text-[10px] font-semibold text-gray-500">Pastikan Kata Sandi Sudah Benar</p>
+                        <button type="button" onclick="navTo('screen-forgot-pwd')" class="text-[10px] font-bold text-gray-600 hover:text-primary transition">Lupa Kata Sandi</button>
+                    </div>
+
+                    <button type="button" onclick="alert('Login Berhasil!'); navTo('screen-splash');" class="w-full bg-primary text-white font-bold py-3.5 rounded-full shadow-md hover:bg-blue-700 transition">
+                        Masuk
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Bottom Background Waves -->
+             <div class="absolute bottom-0 w-full h-40 overflow-hidden z-0">
+                 <svg viewBox="0 0 1440 320" class="absolute bottom-0 w-full h-full" preserveAspectRatio="none">
+                    <path fill="#2B65F6" fill-opacity="1" d="M0,224L80,213.3C160,203,320,181,480,186.7C640,192,800,224,960,240C1120,256,1280,256,1360,256L1440,256L1440,320L1360,320C1280,320,1120,320,960,320C800,320,640,320,480,320C320,320,160,320,80,320L0,320Z"></path>
+                </svg>
+            </div>
+        </div>
+
+
+        <!-- ========================================== -->
+        <!-- SCREEN 6: Forgot Password OTP (Frame 8) -->
+        <!-- ========================================== -->
+        <div id="screen-forgot-pwd" class="screen">
+            <!-- Header -->
+            <div class="pt-12 px-8 pb-10 z-10 relative">
+                <button onclick="navTo('screen-login')" class="text-white mb-6 hover:opacity-80 absolute top-6 left-6">
+                    <i class="fas fa-arrow-left text-xl"></i>
+                </button>
+                <h1 class="text-white text-4xl font-bold leading-tight mt-6">
+                    Lupa<br>Kata Sandi?
+                </h1>
+            </div>
+
+            <!-- Floating Form Card -->
+            <div class="form-card-floating flex flex-col items-center">
+                <h2 class="text-primary font-bold text-lg text-center mb-6">
+                    Masukkan Kode Verifikasi<br>Dari Email Anda
+                </h2>
+
+                <!-- OTP Inputs -->
+                <div class="flex gap-2 justify-center mb-8 w-full">
+                    <input type="text" maxlength="1" class="otp-input" value="1">
+                    <input type="text" maxlength="1" class="otp-input" value="2">
+                    <input type="text" maxlength="1" class="otp-input" value="3">
+                    <input type="text" maxlength="1" class="otp-input" value="4">
+                    <input type="text" maxlength="1" class="otp-input" value="5">
+                </div>
+
+                <button type="button" onclick="navTo('screen-reset-pwd')" class="w-full bg-primary text-white font-bold py-3.5 rounded-full shadow-md hover:bg-blue-700 transition mb-4">
+                    Verikasi
+                </button>
+
+                <div class="text-center text-sm font-semibold">
+                    <a href="#" class="text-gray-600 underline decoration-gray-400">Kirim Ulang</a>
+                    <p class="text-gray-500 mt-1">01:00</p>
+                </div>
+            </div>
+            
+            <!-- Bottom Background Waves -->
+             <div class="absolute bottom-0 w-full h-40 overflow-hidden z-0">
+                 <svg viewBox="0 0 1440 320" class="absolute bottom-0 w-full h-full" preserveAspectRatio="none">
+                    <path fill="#2B65F6" fill-opacity="1" d="M0,224L80,240C160,256,320,288,480,288C640,288,800,256,960,224C1120,192,1280,160,1360,144L1440,128L1440,320L1360,320C1280,320,1120,320,960,320C800,320,640,320,480,320C320,320,160,320,80,320L0,320Z"></path>
+                </svg>
+                <!-- Lighter wave below -->
+                 <svg viewBox="0 0 1440 320" class="absolute bottom-0 w-full h-full opacity-50" preserveAspectRatio="none" style="transform: translateY(20px);">
+                    <path fill="#0CA1F2" fill-opacity="1" d="M0,288L120,266.7C240,245,480,203,720,202.7C960,203,1200,245,1320,266.7L1440,288L1440,320L1320,320C1200,320,960,320,720,320C480,320,240,320,120,320L0,320Z"></path>
+                </svg>
+            </div>
+        </div>
+
+
+        <!-- ========================================== -->
+        <!-- SCREEN 7: Reset Password (Frame 9) -->
+        <!-- ========================================== -->
+        <div id="screen-reset-pwd" class="screen">
+            <!-- Header -->
+            <div class="pt-12 px-8 pb-10 z-10 relative">
+                <button onclick="navTo('screen-forgot-pwd')" class="text-white mb-6 hover:opacity-80 absolute top-6 left-6">
+                    <i class="fas fa-arrow-left text-xl"></i>
+                </button>
+                <h1 class="text-white text-4xl font-bold leading-tight mt-6">
+                    Atur<br>Ulang Sandi
+                </h1>
+            </div>
+
+            <!-- Floating Form Card -->
+            <div class="form-card-floating">
+                <h2 class="text-primary font-bold text-lg text-center mb-6">
+                    Masukkan Kata<br>Sandi Baru
+                </h2>
+
+                <form class="flex flex-col gap-4">
+                    <input type="password" placeholder="Kata Sandi" class="custom-input">
+                    <input type="password" placeholder="Konfirmasi Kata Sandi" class="custom-input">
+                    
+                    <p class="text-[10px] text-gray-500 font-semibold text-center mt-1 mb-4">Pastikan untuk Menggunakan Kata Sandi yang Rumit</p>
+
+                    <button type="button" onclick="alert('Sandi berhasil diubah! Silakan login.'); navTo('screen-login');" class="w-full bg-primary text-white font-bold py-3.5 rounded-full shadow-md hover:bg-blue-700 transition">
+                        Atur Ulang
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Bottom Background Waves -->
+             <div class="absolute bottom-0 w-full h-40 overflow-hidden z-0">
+                 <svg viewBox="0 0 1440 320" class="absolute bottom-0 w-full h-full" preserveAspectRatio="none">
+                    <path fill="#2B65F6" fill-opacity="1" d="M0,288L80,277.3C160,267,320,245,480,245.3C640,245,800,267,960,250.7C1120,235,1280,181,1360,154.7L1440,128L1440,320L1360,320C1280,320,1120,320,960,320C800,320,640,320,480,320C320,320,160,320,80,320L0,320Z"></path>
+                </svg>
+                 <!-- Lighter wave below -->
+                 <svg viewBox="0 0 1440 320" class="absolute bottom-0 w-full h-full opacity-50" preserveAspectRatio="none" style="transform: translateY(30px);">
+                    <path fill="#0CA1F2" fill-opacity="1" d="M0,320L120,309.3C240,299,480,277,720,250.7C960,224,1200,192,1320,176L1440,160L1440,320L1320,320C1200,320,960,320,720,320C480,320,240,320,120,320L0,320Z"></path>
+                </svg>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Simple navigation logic to switch between screens
+        function navTo(screenId) {
+            // Hide all screens
+            const screens = document.querySelectorAll('.screen');
+            screens.forEach(screen => {
+                screen.classList.remove('active');
+            });
+
+            // Show target screen
+            const targetScreen = document.getElementById(screenId);
+            if (targetScreen) {
+                targetScreen.classList.add('active');
+            }
+        }
+
+        // Auto-focus logic for OTP inputs
+        document.querySelectorAll('.screen').forEach(screen => {
+            const otpInputs = screen.querySelectorAll('.otp-input');
+            otpInputs.forEach((input, index) => {
+                input.addEventListener('input', function() {
+                    if (this.value.length === 1 && index < otpInputs.length - 1) {
+                        otpInputs[index + 1].focus();
+                    }
+                });
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Backspace' && this.value.length === 0 && index > 0) {
+                        otpInputs[index - 1].focus();
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
